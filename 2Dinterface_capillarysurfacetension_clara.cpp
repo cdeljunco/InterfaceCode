@@ -132,7 +132,10 @@ int main( int argc,char *argv[]){
     //Input file with lattice
     sprintf( infilename, "%s.XYZ", filename);
     inputfile = fopen( infilename, "r");       
-
+    if (inputfile  == NULL) {
+    	perror("Failed to open input file ");
+    	return 1;	
+	}
     //Output file storing the spectrum of fourier amplitudes. (k, <|h(k)^2|>   
     ofstream Hout;
     sprintf( hfilename, "NewLatticeOutput_%s.stats", filename); //file to write Height stats       
