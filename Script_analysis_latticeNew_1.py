@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from numpy import linalg as LA
 from string import Template
 from dump import dump
-from namefiles import namefiles
+#from namefiles import namefiles
   
 
 #phi==density of lattice
@@ -76,8 +76,8 @@ phobulk = 0
 #Create output files 
 
 #xyz output file will contain the lattice. You should watch it on vmd to be sure it doesn't have any bubbles, etc.
-name = "newLattice_cutoff{:}_{:}".format(cutoff,filename) 
-outputfile = "{:}.XYZ".format(namefiles.output(name))
+#name = "newLattice_cutoff{:}_{:}".format(cutoff,filename) 
+outputfile = "newLattice_cutoff{:}_{:}.XYZ".format(cutoff, filename)
 
 fxyz = open( outputfile,"w" )
 
