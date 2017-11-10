@@ -1,0 +1,5 @@
+CC=g++
+CFLAGS=-I
+
+2d_interface: 2Dinterface_capillarysurfacetension_clara.cpp Lattice_3d_clara.cpp Cluster_analysis_clara.cpp Utilities_clara.cpp
+	$(CC) -o 2d_interface.out 2Dinterface_capillarysurfacetension_clara.cpp Lattice_3d_clara.cpp Cluster_analysis_clara.cpp Utilities_clara.cpp -lfftw3

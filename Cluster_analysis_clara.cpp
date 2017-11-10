@@ -8,12 +8,7 @@ Library of functions for lattice gas simulations and otherwise. C++ implemntatio
 #include <stdio.h>
 #include <vector>
 #include "Cluster_analysis.h"
-#ifdef CLUSTER
-#include "/home/svaikunt/local/lib/include/fftw3.h"
-#endif 
-#ifndef CLUSTER
 #include <fftw3.h>
-#endif
 #include <assert.h>
 using namespace std;
 
@@ -21,162 +16,199 @@ Cluster_analysis::~Cluster_analysis(){
 
 }//destructor
 
-Cluster_analysis::Cluster_analysis(){}//constructor
+Cluster_analysis::Cluster_analysis(){}
+//constructor
 
 void Cluster_analysis::set_dimension(int x,int y,int z){
-  Lx=x;
-  Ly=y;
-  N=z; //a;ways just 1 for our 2d analysis
-  initialized=1;
-}
-
-void Cluster_analysis::get_dimension(int i){
-  cout << "Cluster_analysis::get_dimension, check" << endl;
-  cout << "Lx" << Lx << "\tLy" << Ly << "\tN" << N << endl;
+  
+    Lx = x;
+    Ly = y;
+    N = z; //always just 1 for our 2d analysis
+    initialized = 1;
 
 }
 
-int Cluster_analysis::uf_find(int x){
-  int y =x;
-  while (labels[y] !=y){
-    y=labels[y];
+
+int Cluster_analysis::uf_find( int x ){
+
+  int y = x;
+
+  while (labels[y] != y){
+    y = labels[y];
   }
-  while (labels[x]!=x){
-    int z=labels[x];
-    labels[x]=y;
-    x=z;
+
+  while (labels[x] != x){
+    int z = labels[x];
+    labels[x] = y;
+    x = z;
   }
+
   return y;
 }
 
 int Cluster_analysis::uf_make_set(void){
+
   labels[0]++;
-  assert(labels[0]< n_labels);
-  labels.push_back(labels[0]);
+  assert(labels[0] < n_labels);
+  labels.push_back( labels[0] );
   return labels[0];
+
 }
 
 int Cluster_analysis::uf_union(int x,int y){
-  return labels[uf_find(x)]=uf_find(y);
+
+  return labels[ uf_find(x) ] = uf_find(y);
+
 }
 
 void Cluster_analysis::uf_initialize(int max_labels, const vector< vector < vector<int> > >& nocc_pass){
-  int loopi,loopj,loopk;
-  if (initialized!=1){
-    cout<<"Cluster_analysis class not initialized properly !";
-    assert(0);
-  }
-  n_labels=Lx*Ly*N;
-  labels.clear();
-  labels.push_back(0);
-  nocc_image.clear();
-  nocc_image_liq.clear();
-  nocc_image_vap.clear();
-  nocc_image_preprocessed.clear();
-  nocc_image_processed.clear();
-  for (loopi=0;loopi<Lx;loopi++){
-	  vector< vector<int> > twoD;
-	  for (loopj=0;loopj<Ly;loopj++){
-	    vector<int> oneD;
-	    for (loopk=0;loopk<N;loopk++){
-	      oneD.push_back(0);
+
+    int loopi, loopj, loopk;
+
+    if (initialized != 1){
+        cout << "Cluster_analysis class not initialized properly !";
+        assert( initialized == 1 );
+        }
+
+    n_labels = Lx * Ly * N; //1 label per lattice site
+    labels.clear();
+    labels.push_back(0);
+
+    nocc_image.clear();
+    nocc_image_liq.clear();
+    nocc_image_vap.clear();
+    nocc_image_preprocessed.clear();
+    nocc_image_processed.clear();
+
+    for (loopi = 0; loopi < Lx; loopi++){
+
+	    vector< vector<int> > twoD;
+	    for (loopj = 0; loopj < Ly; loopj++){
+	        vector<int> oneD;
+	        for (loopk = 0;loopk < N; loopk++){
+	            oneD.push_back( 0 );
+	        }
+	        twoD.push_back( oneD );
 	    }
-	    twoD.push_back(oneD);
-	  }
-	  nocc_image.push_back(twoD);
-	  nocc_image_liq.push_back(twoD);
-	  nocc_image_vap.push_back(twoD);
-	  nocc_image_processed.push_back(twoD);
+
+	  nocc_image.push_back( twoD );
+	  nocc_image_liq.push_back( twoD );
+	  nocc_image_vap.push_back( twoD );
+	  nocc_image_processed.push_back( twoD );
 	  //nocc_image_preprocessed.push_back(twoD);
-	  nocc_image_preprocessed=nocc_pass;//what is this?
+	  nocc_image_preprocessed = nocc_pass;//what is this?
   }	
 }
 
 void Cluster_analysis::uf_done(void){
-  n_labels=0;
-  nocc_image.clear();
-  nocc_image_liq.clear();
-  nocc_image_vap.clear();
-  nocc_image_preprocessed.clear();
-  nocc_image_processed.clear();
-  labels.clear();
+
+    n_labels = 0 ;
+    nocc_image.clear();
+    nocc_image_liq.clear();
+    nocc_image_vap.clear();
+    nocc_image_preprocessed.clear();
+    nocc_image_processed.clear();
+    labels.clear();
+
 }
 
 
-int Cluster_analysis::max(int loopi,int loopj,int loopk){
-  if (!!loopi==1)//double negative?
-    return loopi;
-  if (!!loopj==1)
-    return loopj;
-  if (!!loopk==1)
-    return loopk;
+int Cluster_analysis::max(int loopi, int loopj, int loopk){
+
+    if (!!loopi == 1) // I think this means: if loopi is not 0.
+        return loopi;
+
+    if (!!loopj == 1)
+        return loopj;
+
+    if (!!loopk == 1)
+        return loopk;
+
 }
 
-int Cluster_analysis::maxbind(int loopi,int loopj,int loopk){
-  if (!!loopi*!!loopj==1)
-    return uf_union(loopi,loopj);
-  if (!!loopi*!!loopk==1)
-    return uf_union(loopi,loopk);
-  if (!!loopk*!!loopj==1)
-    return uf_union(loopk,loopj);
-}
+int Cluster_analysis::maxbind(int loopi, int loopj, int loopk){
 
+    if (!!loopi * !!loopj == 1 ) //if neither loopi not loopj is 0.
+        return uf_union( loopi, loopj);
+
+    if (!!loopi * !!loopk == 1)
+        return uf_union( loopi, loopk);
+
+    if (!!loopk * !!loopj == 1)
+        return uf_union(loopk, loopj);
+}
+ 
 int Cluster_analysis::checksite(int lattice_occ,int occ){
-  if (lattice_occ==occ)
-    return 1;
-  else 
-    return 0;
+
+    if (lattice_occ == occ)
+        return 1;
+    else 
+        return 0;
+
 }
 
 //This routine needs to run twice, once for occ=1 and onece for occ=0;  -> why? Not how hoshen-kopelman works...
 //uf_initialize(L*L*N); has to be called before this is called
-void Cluster_analysis::hoshen_kopelman(int occ){
-  if (n_labels!=Lx*Ly*N)
-  {
-    cout<<"Initialize union find first\n";
-    assert(0);
-  }
-  labels.clear();
-  labels.push_back(0);
-  nocc_image.clear();
-  for (int loopi=0;loopi<Lx;loopi++){
-	  vector< vector<int> > twoD;
-	  for (int loopj=0;loopj<Ly;loopj++){
-	    vector<int> oneD;
-	    for (int loopk=0;loopk<N;loopk++){
-	      oneD.push_back(0);
-	    }
-	    twoD.push_back(oneD);
-	  }
-	  nocc_image.push_back(twoD);
-  }
-  for (int loopi=0;loopi<Lx;loopi++){
-    for (int loopj=0;loopj<Ly;loopj++){
-      for (int loopk=0;loopk<N;loopk++){
-	if (checksite(nocc_image_preprocessed[loopi][loopj][loopk],occ)){
-	  int lookx=(loopi==0 ? 0: nocc_image[loopi-1][loopj][loopk]);
-	  int looky=(loopj==0 ? 0: nocc_image[loopi][loopj-1][loopk]);
-	  int lookz=(loopk==0 ? 0: nocc_image[loopi][loopj][loopk-1]);
-	  //cout<<loopi<<loopj<<loopk<<"\n";
-	  switch (!!lookx + !!looky + !!lookz){
-	    case 0:
-	      nocc_image[loopi][loopj][loopk]=uf_make_set();
-	      break;
-	    case 1:
-	      nocc_image[loopi][loopj][loopk]=max(lookx,looky,lookz);
-	      break;
-	    case 2:
-	      nocc_image[loopi][loopj][loopk]=maxbind(lookx,looky,lookz);
-	      break;
-	    case 3:
-	      nocc_image[loopi][loopj][loopk]=uf_union(lookx,looky);
-	      nocc_image[loopi][loopj][loopk]=uf_union(lookz,nocc_image[loopi][loopj][loopk]);
-	      break;
-	  }
-	}
-      }
+
+void Cluster_analysis::hoshen_kopelman( int occ ){
+
+    //check
+    if ( n_labels != Lx * Ly * N ) {
+        cout<<"Initialize union find first\n";
+        assert(0);
     }
-  }
+
+    labels.clear();
+    labels.push_back(0);
+    nocc_image.clear();
+
+    for (int loopi = 0; loopi < Lx; loopi++ ){
+	    vector< vector<int> > twoD;
+
+	    for (int loopj = 0; loopj < Ly; loopj++){
+	        vector<int> oneD;
+
+	        for (int loopk = 0 ; loopk < N ; loopk++){
+	            oneD.push_back(0);
+	        }
+	        twoD.push_back( oneD );
+	    }
+	    nocc_image.push_back(twoD);
+     }
+
+
+    for (int loopi = 0; loopi < Lx; loopi++){
+        for (int loopj = 0; loopj < Ly; loopj++){
+            for (int loopk = 0; loopk < N; loopk++){
+        
+                //same as if (nocc_image_preprocessed[loopi][loopj][loopk] == occ)
+	            if (checksite( nocc_image_preprocessed[loopi][loopj][loopk], occ )){
+
+	                int lookx = ( loopi == 0 ? 0 : nocc_image[loopi-1][loopj][loopk]); // lookx = 0 if loopi = 0, otherwise lookx = nocc_mage of lattice site at loopi - 1               
+                    int looky = ( loopj == 0 ? 0 : nocc_image[loopi][loopj-1][loopk]);
+	                int lookz = ( loopk == 0 ? 0 : nocc_image[loopi][loopj][loopk-1]);
+
+
+	                switch (!!lookx + !!looky + !!lookz){
+	                
+                        case 0: //if the lattice sites at x-1, y-1 and z-1 are all 0 OR if we are at an edge
+	                        nocc_image[loopi][loopj][loopk] = uf_make_set(); //
+	                        break;
+	                    case 1: //if one of these is not 0 set nocc_image to its value
+	                        nocc_image[loopi][loopj][loopk] = max( lookx, looky, lookz);
+	                        break;
+	                    case 2: //if 2 of these are not 0 set nocc_image to 
+	                        nocc_image[loopi][loopj][loopk] = maxbind( lookx, looky, lookz);
+	                        break;
+	                    case 3:
+	                        nocc_image[loopi][loopj][loopk] = uf_union( lookx, looky);
+	                        nocc_image[loopi][loopj][loopk] = uf_union( lookz, nocc_image[loopi][loopj][loopk]);
+	                        break;
+	                }
+	            }
+            }
+        }
+    } 
 
   //cout<<"Ok then\n";
   //cout.flush();
@@ -228,6 +260,7 @@ void Cluster_analysis::hoshen_kopelman(int occ){
     labels_vap=labels;
   }
 }
+
 
 int Cluster_analysis::neighborcheck(int occ, int x,int loopi,int loopj,int loopk){
   if (occ==1){

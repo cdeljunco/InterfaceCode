@@ -27,80 +27,250 @@ Lattice_3d::Lattice_3d(){}
 
 
 void Lattice_3d::initialize(int N1, int Lx1, int Ly1){
-	N=N1;
-	Lx=Lx1;
-    Ly=Ly1;
+
+/* 
+initialize an 3d lattice with the following properties:
+- an N1 x Lx1 x Ly1 array called nocc, filled with 0s
+- an array of length Ly called hstatscap, filled with 0s
+- an array of length Lx called hinstant, filled with 0s
+
+Part of this code appears to be redundant, since nocc and hstatscap and filled with 0s in initializenocc.
+*/
+
+	N = N1;
+	Lx = Lx1;
+    Ly = Ly1;
+
 	initializenocc();
-        set_dimension(Lx,Ly,N);
-        countmovie=0;
-        hstats_cap=0;
-        int loopi,loopj,loopk,loopl;
-        for (loopi=0;loopi<Ly;loopi++){
-          hstatscap.push_back(0.0);
+    set_dimension(Lx, Ly, N);
+
+    countmovie=0;
+    hstats_cap=0;
+
+    int loopi,loopj,loopk,loopl;
+
+    for ( loopi = 0;loopi < Ly;loopi++ ){
+        hstatscap.push_back( 0.0 );
         }
-        for (loopi=0;loopi<Lx;loopi++){
-          hinstant.push_back(0.0);
+
+    for ( loopi = 0; loopi < Lx; loopi++ ){
+        hinstant.push_back( 0.0 );
         }
-        for (loopi=0;loopi<Lx;loopi++){
-          vector< vector<int> > twoD;
-          for (loopj=0;loopj<Ly;loopj++){
+
+    for ( loopi = 0; loopi < Lx; loopi++ ){
+        vector< vector<int> > twoD;
+        for ( loopj=0; loopj<Ly; loopj++ ){
             vector<int> oneD;
-            for (loopk=0;loopk<N;loopk++){
-              oneD.push_back(0);
+            for ( loopk=0; loopk<N; loopk++ ){
+                oneD.push_back( 0 );
+                }
+            twoD.push_back( oneD );
             }
-            twoD.push_back(oneD);
-          }
-          nocc.push_back(twoD);
+        nocc.push_back( twoD );
         }
- 
 }
 
 
 
 void Lattice_3d::initializenocc(){
+
+/* 
+initialize a 3d array of 0s called nocc of dimensions N, Lx, Ly.
+initialize an array of 0s of length Ly called hstatscap.
+*/
+
 	nocc.clear();
-	int loopi,loopj,loopk,loopl;
-	for (loopi=0;loopi<Ly;loopi++){
-	  hstatscap.push_back(0.0);
-	}
-	for (loopi=0;loopi<Lx;loopi++){
-	  vector< vector<int> > twoD;
-	  for (loopj=0;loopj<Ly;loopj++){
-	    vector<int> oneD;
-	    for (loopk=0;loopk<N;loopk++){
-	      oneD.push_back(0);
+
+	int loopi, loopj, loopk, loopl;
+
+	for  (loopi = 0; loopi < Ly; loopi++ ){
+	    hstatscap.push_back( 0.0 );
 	    }
-	    twoD.push_back(oneD);
-	  }
-	  nocc.push_back(twoD);
-	}
+
+	for ( loopi = 0;loopi < Lx; loopi++ ){
+	    vector< vector<int> > twoD;
+	    for ( loopj = 0;loopj < Ly; loopj++ ){
+	        vector<int> oneD;
+	        for ( loopk=0; loopk<N; loopk++ ){
+	            oneD.push_back( 0 );
+	            }
+	        twoD.push_back( oneD );
+	        }
+	    nocc.push_back( twoD );
+	    }
 	
 }
 
 
 
 void Lattice_3d::computehstats_cap(){
-  hstats_cap=hstats_cap+1;
-  for (int loopi=0;loopi<Lx;loopi++){
-    for(int loopj=0;loopj<Ly;loopj++){
-      for(int loopk=0;loopk<N;loopk++){
-	hstatscap[loopj]+=nocc_image_processed[loopi][loopj][loopk]*pow(Lx,-1.0);
-      }
-     }
-   }
+
+/*
+compute hstats_cap.
+h_stats_cap(y) = sum over x and y of nocc_image_processed[x][y][z]/Lx
+*/
+
+    hstats_cap=hstats_cap+1;
+
+    for (int loopi = 0;loopi < Lx; loopi++){
+        for(int loopj = 0; loopj < Ly; loopj++){
+            for(int loopk = 0; loopk < N; loopk++){
+	
+                hstatscap[ loopj ] += nocc_image_processed[ loopi ][ loopj ][ loopk ] * pow( Lx, -1.0);
+                }
+            }
+        }
+
 }
 
 
 void Lattice_3d::computeinstantinterface(){
- for (int loopi=0;loopi<Lx;loopi++){
-  hinstant[loopi]=0;
-  for (int loopj=0;loopj<Ly;loopj++){
-   for(int loopk=0;loopk<N;loopk++){
-    hinstant[loopi]+=nocc_image_processed[loopi][loopj][loopk];
-    }
-   }
- }
+
+/*
+compute hinstant.
+hinstant(x) = sum over y and z of nocc_image_processed[x][y][z] - i.e. the column height at x if it's in 2D.
+*/
+
+    for (int loopi = 0;loopi < Lx; loopi++){
+        hinstant[ loopi ] = 0;
+        for (int loopj = 0;loopj < Ly; loopj++){
+            for(int loopk = 0;loopk < N; loopk++){
+                hinstant[ loopi ] += nocc_image_processed[ loopi ][ loopj ][ loopk ];
+                }
+            }
+        }
+
 }
+
+
+void Lattice_3d::writeoutlattice_XYZ(char *outputfile1){
+
+/* output the lattice contained in nocc to a file */
+
+    int loopi,loopj;
+
+    if (countmovie == 0){ //if it's the first frame, need to create and open file.
+        fileout.open( outputfile1 );
+        cout << "file opened\n" ;
+        //comment lines of file for VMD
+        fileout << Lx * Ly << "\n";
+        fileout << "Iteration\n" ;
+
+        for (loopi = 0;loopi < Lx; loopi++){
+            for(loopj = 0; loopj < Ly; loopj++ ){
+
+                if (nocc_image_processed[loopi][loopj][0] == 1){
+                    fileout << "O" << "\t" << loopi << "\t" << loopj << "\t" << 0 << "\n";
+                    }
+                else{
+                    fileout << "O" << "\t" << 0 << "\t" << 0 << "\t" << -5 << "\n";
+                    }
+
+            }
+        }
+
+        countmovie = countmovie + 1;
+    }
+
+    else{
+
+        fileout << Lx * Ly << "\n";
+        fileout << "Iteration\n";
+
+        for (loopi = 0; loopi < Lx; loopi++){
+            for(loopj = 0;loopj < Ly; loopj++){
+                if (nocc_image_processed[loopi][loopj][0] == 1){
+                    fileout << "O" << "\t" << loopi << "\t" << loopj << "\t" << 0 << "\n";
+                    }
+                else{
+                    fileout << "O" << "\t" << 0 << "\t" << 0 << "\t" << -5 << "\n";
+                    }
+                }
+            }
+    } 
+   
+}
+
+void Lattice_3d::writeoutnocclattice_XYZ(char *outputfile1){
+
+/* output the lattice contained in nocc to a file */
+
+    int loopi,loopj;
+
+    if (countmovie == 0){ //if it's the first frame, need to create and open file.
+        fileout.open( outputfile1 );
+        cout << "file opened\n" ;
+        //comment lines of file for VMD
+        fileout << Lx * Ly << "\n";
+        fileout << "Iteration\n" ;
+
+        for (loopi = 0;loopi < Lx; loopi++){
+            for(loopj = 0; loopj < Ly; loopj++ ){
+
+                if (nocc[loopi][loopj][0] == 1){
+                    fileout << "O" << "\t" << loopi << "\t" << loopj << "\t" << 0 << "\n";
+                    }
+                else{
+                    fileout << "O" << "\t" << 0 << "\t" << 0 << "\t" << -5 << "\n";
+                    }
+
+            }
+        }
+
+        countmovie = countmovie + 1;
+    }
+
+    else{
+
+        fileout << Lx * Ly << "\n";
+        fileout << "Iteration\n";
+
+        for (loopi = 0; loopi < Lx; loopi++){
+            for(loopj = 0;loopj < Ly; loopj++){
+                if (nocc[loopi][loopj][0] == 1){
+                    fileout << "O" << "\t" << loopi << "\t" << loopj << "\t" << 0 << "\n";
+                    }
+                else{
+                    fileout << "O" << "\t" << 0 << "\t" << 0 << "\t" << -5 << "\n";
+                    }
+                }
+            }
+    } 
+   
+}
+
+void Lattice_3d::whichbox( int *box1, double rx, double ry, double rz){
+
+  box1[0] = (int)(floor( rx / coarsegrain + 0.5 ));
+  box1[1] = (int)(floor( ry / coarsegrain + 0.5 ));
+  box1[2] = (int)(floor( rz / coarsegrain + 0.5 ));
+  
+  
+}
+
+
+/*void Lattice_3d::neighborlist(int *box1,int loopk1,int loopk2,int loopk3){
+  int loopk11=loopk1+(int)(floor(3*gsl_rng_uniform(r)-1));
+  int loopk22=loopk2+(int)(floor(3*gsl_rng_uniform(r)-1));
+  int loopk33=loopk3+(int)(floor(3*gsl_rng_uniform(r)-1));
+  if (loopk11>Lx-1)
+    loopk11=0;
+  if (loopk11<0)
+    loopk11=Lx-1;
+  if (loopk22>Ly-1)
+    loopk22=0;
+  if (loopk22<0)
+    loopk22=Ly-1;
+  if (loopk33>N-1)
+    loopk33=0;
+  if (loopk33<0)
+    loopk33=N-1;
+  box1[0]=loopk11;
+  box1[1]=loopk22;
+  box1[2]=loopk33;
+}
+*/
+
 
 /*
 void Lattice_3d::compute1Dcircularinterface(int n){ //only works for a 2D system with a 1D interface
@@ -174,63 +344,3 @@ void Lattice_3d::compute1Dcircularinterface(int n){ //only works for a 2D system
 */
 
 
-void Lattice_3d::writeoutlattice_XYZ(char *outputfile1){
-  int loopi,loopj;
-  if (countmovie==0){
-    fileout.open(outputfile1);
-    fileout<<Lx*Ly<<"\n";
-    fileout<<"Iteration\n";
-    for (loopi=0;loopi<Lx;loopi++){
-      for(loopj=0;loopj<Ly;loopj++){
-        if (nocc_image_processed[loopi][loopj][0]==1)
-         fileout<<"O"<<"\t"<<loopi<<"\t"<<loopj<<"\t"<<0<<"\n";
-        else 
-         fileout<<"O"<<"\t"<<0<<"\t"<<0<<"\t"<<-5<<"\n";
-      }
-    }
-   countmovie=countmovie+1;
-   }
-   else{
-     fileout<<Lx*Ly<<"\n";
-     fileout<<"Iteration\n";
-    for (loopi=0;loopi<Lx;loopi++){
-      for(loopj=0;loopj<Ly;loopj++){
-        if (nocc_image_processed[loopi][loopj][0]==1)
-         fileout<<"O"<<"\t"<<loopi<<"\t"<<loopj<<"\t"<<0<<"\n";
-        else
-         fileout<<"O"<<"\t"<<0<<"\t"<<0<<"\t"<<-5<<"\n"; 
-      }
-    }
-   }
-}
-
-
-
-/*void Lattice_3d::neighborlist(int *box1,int loopk1,int loopk2,int loopk3){
-  int loopk11=loopk1+(int)(floor(3*gsl_rng_uniform(r)-1));
-  int loopk22=loopk2+(int)(floor(3*gsl_rng_uniform(r)-1));
-  int loopk33=loopk3+(int)(floor(3*gsl_rng_uniform(r)-1));
-  if (loopk11>Lx-1)
-    loopk11=0;
-  if (loopk11<0)
-    loopk11=Lx-1;
-  if (loopk22>Ly-1)
-    loopk22=0;
-  if (loopk22<0)
-    loopk22=Ly-1;
-  if (loopk33>N-1)
-    loopk33=0;
-  if (loopk33<0)
-    loopk33=N-1;
-  box1[0]=loopk11;
-  box1[1]=loopk22;
-  box1[2]=loopk33;
-}
-*/
-void Lattice_3d::whichbox(int *box1, double rx,double ry,double rz){
-  box1[0]=(int)(floor(rx/coarsegrain+0.5));
-  box1[1]=(int)(floor(ry/coarsegrain+0.5));
-  box1[2]=(int)(floor(rz/coarsegrain+0.5));
-  
-  
-}

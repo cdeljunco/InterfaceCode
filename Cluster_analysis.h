@@ -32,7 +32,7 @@ public:
  Cluster_analysis();
  ~Cluster_analysis();
   void set_dimension(int,int,int);
-  void get_dimension(int);
+  int get_dimension(void);
   int uf_find(int);
   int uf_make_set();
   int uf_union(int,int);

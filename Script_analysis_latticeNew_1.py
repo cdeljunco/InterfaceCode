@@ -50,9 +50,6 @@ ylattice = int( np.divide(yhi,cutoff) ) #number of lattice points in y-direction
 latticex = np.zeros( xlattice )  #array of zeros, each representing a lattice point along the x-axis
 latticey = np.zeros( ylattice ) # ditto in y 
 
-print lattice[0][0],xlattice,ylattice
-
-
 #Input file name 
 
 trajectory = "{:}.lammpstrj".format(filename)
@@ -79,28 +76,27 @@ phobulk = 0
 #Create output files 
 
 #xyz output file will contain the lattice. You should watch it on vmd to be sure it doesn't have any bubbles, etc.
-name="newLattice_cutoff{:}_{:}".format(cutoff,filename) 
-outputfile="{:}.XYZ".format(namefiles.output(name))
+name = "newLattice_cutoff{:}_{:}".format(cutoff,filename) 
+outputfile = "{:}.XYZ".format(namefiles.output(name))
 
-fxyz=open(outputfile,"w")
+fxyz = open( outputfile,"w" )
 
 #Fix the center of mass. Look at displacements and subtract the total net displacement. 
 
-grandsumx=0
-grandsumy=0
+grandsumx = 0
+grandsumy = 0
 
 for t in time:
 
     if count > skip and count % skip1 == 0:
 
-        lattice=np.zeros( ( xlattice, ylattice ) ) #array of zeros, each representing a lattice point
+        lattice = np.zeros( ( xlattice, ylattice ) ) #array of zeros, each representing a lattice point
 
         #elegant module in pizza.py library. Easy way to process the lammpstrj files. d.vecs() goes frame by frame.  
         idlist, typelist, xlist, ylist, zlist = d.vecs( t, "id", "type", "x", "y", "z" )
         cmx = 0
         cmy = 0;
         counter = 0;
-        type = 0;
 
         #Compute center of mass 
         for i in range (len(idlist)):
@@ -117,7 +113,7 @@ for t in time:
         dispy = np.zeros( len(idlist) )
         #print t, cmx,cmy
 
-        if count > 0 :
+        if count > skip + skip1 :
             oldidlist, oldtypelist, oldxlist, oldylist, oldzlist = d.vecs( time[ count - skip1 ], "id", "type", "x", "y", "z")     
      
             #The arrays dispx and dispy store the frame to frame displacemnts of each atom  
@@ -164,15 +160,15 @@ for t in time:
 
                 xlist[i] = xlist[i] - grandsumx
        
-                while xlist[i] < 0 or xlist[i] > = xhi:
+                while xlist[i] < 0 or xlist[i] >= xhi:
                     if xlist[i] < 0:
-                        xlist[i] + = xhi
+                        xlist[i] += xhi
                     if xlist[i] >= xhi:
                         xlist[i] = xlist[i] - xhi
                 
                 ylist[i] = ylist[i] - grandsumy
                 
-                while ylist[i] < 0 or ylist[i] > = yhi:
+                while ylist[i] < 0 or ylist[i] >= yhi:
                     if ylist[i] < 0:
                         ylist[i] += yhi
                     if ylist[i] >= yhi:
@@ -188,7 +184,7 @@ for t in time:
                 if typelist[i] == 1:
                     cmx += xlist[i];
                     cmy += ylist[i];
-                    counter = counter+1;
+                    counter = counter + 1;
                 
             cmx = cmx / counter;
             cmy = cmy / counter;
@@ -198,20 +194,20 @@ for t in time:
 
             for i in range (len(idlist)):
 
-                xlist[i] = xlist[i] - cmx + xhi / 2.0
+                xlist[i] = xlist[i] - cmx + (xhi / 2.0) # why add L_x / 2 here? 
        
                 if xlist[i] < 0:
                     xlist[i] += xhi
                 if xlist[i] >= xhi:
                     xlist[i] = xlist[i] - xhi
             
-                ylist[i] = ylist[i] - cmy + yhi / 2.0
+                ylist[i] = ylist[i] - cmy + (yhi / 2.0)  # why add L_y / 2 here?
                 if ylist[i] < 0:
                     ylist[i] += yhi
                 if ylist[i] >= yhi:
                     ylist[i] = ylist[i] - yhi
 
-            #Check the center of mass 
+            #Check the center of mass. The COM of the system is always the center of the box - but the COM of each particle type should also be the center of the box.
             counter = 0
             cmx = 0
             cmy = 0
@@ -224,8 +220,9 @@ for t in time:
      
             cmx = cmx / counter;
             cmy = cmy / counter;
-
-            print("cmx : " , cmx, " cmy : ", cmy)
+            
+            if ( abs(cmx - 0.5 * xhi) > 0.5 ) or ( abs(cmy - 0.5 * yhi) > 0.5 ) :
+                print("WARNING: cmx : " , cmx, " cmy : ", cmy)
 
             #Now the slab shold reallly be in the middle.
  
@@ -235,60 +232,36 @@ for t in time:
      #reference frame.
 
 
-    for i in range(len(idlist)):
-        
-        #find which lattice cell the particle is in.
+        for i in range(len(idlist)):
+            
+            #find which lattice cell the particle is in.
 
-        xi = int( np.divide( xlist[i] ,cutoff )) 
-        yi = int( np.divide( ylist[i] ,cutoff ))
+            xi = int( np.divide( xlist[i] ,cutoff )) 
+            yi = int( np.divide( ylist[i] ,cutoff ))
 
-        #print xi,yi
+            #print xi,yi
 
-        if xi < 0:
-            xi = 0
-            print "WARNING: x lattice site out of bounds", xi, xlattice
+            if xi < 0:
+                xi = 0
+                print "WARNING: x lattice site out of bounds", xi, xlattice
 
-        if xi >= xlattice:
-            xi = xlattice - 1
-            print "WARNING: x lattice site out of bounds", xi, xlattice
+            if xi >= xlattice:
+                xi = xlattice - 1
+                print "WARNING: x lattice site out of bounds", xi, xlattice
 
-        if yi < 0:
-            yi = 0
-            print "WARNING: y lattice site out of bounds", yi, ylattice
+            if yi < 0:
+                yi = 0
+                print "WARNING: y lattice site out of bounds", yi, ylattice
 
-        if yi >= ylattice:
-            yi = ylattice - 1
-            print "WARNING: y lattice site out of bounds", yi, ylattice
+            if yi >= ylattice:
+                yi = ylattice - 1
+                print "WARNING: y lattice site out of bounds", yi, ylattice
 
-        xleft = xi - 1;
-        xright = xi + 1;
-        ydown = yi - 1;
-        yup = yi + 1;
-       
-        if xleft<0:
-            xleft = xlattice - 1
+            if typelist[i] == 2: #Blue particles
+                colorcount = 1
+                lattice[xi][yi] += 1
 
-        if ydown < 0:
-            ydown = ylattice - 1
-
-        if xright > xlattice-1 :
-            xright = 0;
-
-        if yup > ylattice - 1:
-            yup = 0;
-    
-        colorcount = 0
-
-        if typelist[i] == 2: #Blue particles
-            colorcount = 1
-            lattice[xi][yi] += colorcount
-
-            type=type+1 #moving up in the typelist?
-
-        else: 
-            colorcount = 0 #red particles
-        
-        lattice[xi][yi] += colorcount
+            # if particle is red, colorcount = 0, do not increment lattice[xi][yi]
 
         if count > skip1:
 
@@ -301,10 +274,6 @@ for t in time:
             #Average density way over to the left, i.e. in the blue bulk.
             phobulk = np.mean(lattice[0:3, 0:3]) / 9.0
 
-            print phobulk
-        
-            phobulk1 = cutoff * cutoff * phi #number of particles in one lattice cell
-
             for i in range( xlattice ): 
 
                 for j in range( ylattice ):
@@ -316,10 +285,10 @@ for t in time:
                         counter = counter + 1
                     else: 
                         lattice[i][j] = 0 #Then it is red or empty
-     
+         
             for i in range( xlattice ):
                 for j in range( ylattice ):
-   
+       
                         if lattice[i][j] == 1:
                                 fxyz.write("%g\t%g\t%g\t%g\n"%(1,j,i,0)) #lattice is flipped so that the interface is horizontal.
                         else:
