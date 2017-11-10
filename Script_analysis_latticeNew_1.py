@@ -138,7 +138,7 @@ for t in time:
                     dispx[i] = dispx[i] - xhi
                 if dispx[i] < -0.5 * xhi: 
                     dispx[i] = dispx[i] + xhi
-   #   
+   
                 if dispy[i] > 0.5 * yhi:
                     dispy[i] = -dispy[i] + yhi
                 if dispy[i] < -0.5 * yhi:
