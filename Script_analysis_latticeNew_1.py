@@ -36,12 +36,6 @@ ylo=0;
 xhi=Lx;
 yhi=L;
 
-#skip: Number of frames to skip at the beginning of the trajectory 
-#skip1 > skip: Number of frames to skip between gathering data
-
-skip=10;
-skip1=1;
-
 
 #set up coarse grained lattice 
  
@@ -64,6 +58,12 @@ print "Input file:{0:s}".format(trajectory)
 d=dump(trajectory);
 d.sort()
 time=d.time()
+
+#skip: Number of frames to skip at the beginning of the trajectory 
+#skip1 > skip: Number of frames to skip between gathering data
+
+skip = 0;
+skip1 = 1;
 
 stats = np.zeros( len(time) )
 statsx = np.zeros( len(time) )
