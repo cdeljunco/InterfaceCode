@@ -24,7 +24,8 @@ from dump import dump
 #phi==density of lattice
 #cutoff= coarse graining lenght scale 
 #L= Size of box along y dimension
-#Lx= Size of box along x dimension 
+#Lx= Size of box along x dimension
+#print_from = frame number after which to print. 
 
 phi=string.atof(sys.argv[1]);
 cutoff=string.atof(sys.argv[2]);
@@ -98,6 +99,8 @@ for t in time:
         cmx = 0
         cmy = 0;
         counter = 0;
+
+        print("Count = " + str(count))
 
         #Compute center of mass 
         for i in range (len(idlist)):
@@ -222,7 +225,7 @@ for t in time:
             cmx = cmx / counter;
             cmy = cmy / counter;
             
-            if ( abs(cmx - 0.5 * xhi) > 0.5 ) or ( abs(cmy - 0.5 * yhi) > 0.5 ) :
+            if ( abs(cmx - (0.5 * xhi)) > 1 ) or ( abs(cmy - (0.5 * yhi)) > 1 ) :
                 print("WARNING: cmx : " , cmx, " cmy : ", cmy)
 
             #Now the slab shold reallly be in the middle.
@@ -233,7 +236,7 @@ for t in time:
      #reference frame.
 
         if count > print_from:
-        
+       
           for i in range(len(idlist)):
               
               #find which lattice cell the particle is in.
@@ -259,42 +262,43 @@ for t in time:
                   yi = ylattice - 1
                   print "WARNING: y lattice site out of bounds", yi, ylattice
 
-              if typelist[i] == 2: #Blue particles
+              if typelist[i] == 1: #Red particles
                   colorcount = 1
                   lattice[xi][yi] += 1
 
-              # if particle is red, colorcount = 0, do not increment lattice[xi][yi]
+              # if particle is blue, colorcount = 0, do not increment lattice[xi][yi]
+        
+          fxyz.write( "%g\n"%( xlattice * ylattice )) #comment lines in xyz file
+          fxyz.write(" Iteration\n " )
+          latticexcm = 0
+          latticeycm = 0
+          counter = 0
 
-          if count > skip1:
+          #Average density in the middle of the box, i.e. in the blue bulk.
+          phobulk = np.mean(lattice[int(xlattice/2):int(xlattice/2)+3, int(ylattice/2):int(ylattice/2)+3])
 
-              fxyz.write( "%g\n"%( xlattice * ylattice )) #comment lines in xyz file
-              fxyz.write(" Iteration\n " )
-              latticexcm = 0
-              latticeycm = 0
-              counter = 0
 
-              #Average density way over to the left, i.e. in the blue bulk.
-              phobulk = np.mean(lattice[0:3, 0:3]) / 9.0
+          for i in range( xlattice ): 
 
-              for i in range( xlattice ): 
+              for j in range( ylattice ):
 
-                  for j in range( ylattice ):
-
-                      if np.absolute( lattice[i][j] ) >= 0.5 * phobulk: #Then it is blue - a totally blue cell has phobulk blue particles in it.
-                          lattice[i][j] = 1
-                          latticexcm += i
-                          latticeycm += j
-                          counter = counter + 1
-                      else: 
-                          lattice[i][j] = 0 #Then it is red or empty
-           
-              for i in range( xlattice ):
-                  for j in range( ylattice ):
+                  if np.absolute( lattice[i][j] ) >= 0.5 * phobulk: #Then it is red  - a totally red cell has phobulk red particles in it.
+                      lattice[i][j] = 1
+                      latticexcm += i
+                      latticeycm += j
+                      counter = counter + 1
+                  else: 
+                      lattice[i][j] = 0 #Then it is blue or empty
+          
+          for i in range( xlattice ):
+              for j in range( ylattice ):
          
-                          if lattice[i][j] == 1:
-                                  fxyz.write("%g\t%g\t%g\t%g\n"%(1,j,i,0)) #lattice is flipped so that the interface is horizontal.
-                          else:
-                                  fxyz.write("%g\t %g\t%g\t%g\n"%(1,0,0,-5)) #if the lattice cell is red, write it out at point 0, 0, -5 - basically it just doesn't show up.
+                      if lattice[i][j] == 1:
+                          fxyz.write("%g\t%g\t%g\t%g\n"%(1,j,i,0)) #lattice is flipped so that the interface is horizontal.
+                      else: 
+                          fxyz.write("%g\t %g\t%g\t%g\n"%(1,0,0,-5)) #if the lattice cell is blue, write it out at point 0, 0, -5 - basically it just doesn't show up.
+    
+    print("Incrementing count")
     count += 1
  
  

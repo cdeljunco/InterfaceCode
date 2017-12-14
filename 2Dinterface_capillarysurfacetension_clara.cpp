@@ -168,7 +168,7 @@ int main( int argc,char *argv[]){
                 mylattice.nocc[ latx ][ laty ][ latz ] = 1; //nocc = 1 if lattice site is occupied, otherwise = 0
                 }
             }
-        cout << "Read frame " << loopj << "\n" ;
+        //cout << "Read frame " << loopj << "\n" ;
         //cout << outfile1name << "\n" ;
         //mylattice.writeoutnocclattice_XYZ( outfile1name );
 
