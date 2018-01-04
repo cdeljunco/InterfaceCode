@@ -5,7 +5,7 @@ This code takes as input a lammps trajectory file, the x and y dimensions of the
 The trajectory must contain a mixture of particles labeled type 1 and type 2 which have x and y positions. It must be 2d and rectangular. 
 This code analyzes each frame, corrects any center of mass drift, 
 coarse-grains the simulation box and assigns to each lattice cell of length lxl 
-a value of 1 if it contains mostly type 2 particles, and a value of 0 if it contains mostly type 2 particles.
+a value of 1 if it contains mostly type 1 (red) particles, and a value of 0 if it contains mostly type 2 (blue) particles.
 The lattice is printed to an xyz file that can be read by VMD.
 '''
 
@@ -274,8 +274,8 @@ for t in time:
           latticeycm = 0
           counter = 0
 
-          #Average density in the middle of the box, i.e. in the blue bulk.
-          phobulk = np.mean(lattice[int(xlattice/2):int(xlattice/2)+3, int(ylattice/2):int(ylattice/2)+3])
+          #Average density in the middle of the box, i.e. in the red bulk.
+          phobulk = np.mean(lattice[int(xlattice/2):int(xlattice/2)+3, int(ylattice/2):int(ylattice/2)+3])/9.0
 
 
           for i in range( xlattice ): 

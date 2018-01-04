@@ -115,7 +115,6 @@ h_stats_cap(y) = sum over x and y of nocc_image_processed[x][y][z]/Lx
     for (int loopi = 0;loopi < Lx; loopi++){
         for(int loopj = 0; loopj < Ly; loopj++){
             for(int loopk = 0; loopk < N; loopk++){
-	
                 hstatscap[ loopj ] += nocc_image_processed[ loopi ][ loopj ][ loopk ] * pow( Lx, -1.0);
                 }
             }
