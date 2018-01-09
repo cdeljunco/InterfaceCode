@@ -19,7 +19,6 @@ import matplotlib.pyplot as plt
 from numpy import linalg as LA
 from string import Template
 from dump import dump
-from namefiles import namefiles
   
 
 L = string.atoi(sys.argv[1])
