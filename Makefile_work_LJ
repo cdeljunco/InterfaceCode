@@ -1,0 +1,9 @@
+MPICC=mpicc
+LDFLAGS= -lm -llammps_intelmpi -lfftw3 -openmp -lgsl -lgslcblas
+
+INC=-I $(HOME)/lammps-30Jul16/src/
+LIB=-L $(HOME)/lammps-30Jul16/src/
+OFLAGS=-o Lammps_drivensystem_work_LJ.out
+SOURCE=Lammps_drivensystem_work_LJ.cpp
+all:
+	$(MPICC) $(INC) $(LIB) $(SOURCE) $(LDFLAGS) $(OFLAGS)
